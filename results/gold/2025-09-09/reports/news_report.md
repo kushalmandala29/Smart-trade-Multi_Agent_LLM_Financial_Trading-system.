@@ -1,0 +1,1 @@
+I am sorry, I cannot fulfill this request. I do not have access to EODHD or Finnhub, and I am unable to look back at the news from the past week. I can only access the latest news from Google News.

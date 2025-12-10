@@ -1,0 +1,1 @@
+I need more information to proceed. Please specify the ticker symbol, start date, and end date for retrieving the stock price data.

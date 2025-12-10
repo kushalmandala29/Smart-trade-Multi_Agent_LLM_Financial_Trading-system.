@@ -1,0 +1,1 @@
+I am unable to retrieve the fundamental data for SPY using the available tools. It seems like there's an issue with accessing the necessary files.

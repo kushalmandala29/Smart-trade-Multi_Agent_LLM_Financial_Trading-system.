@@ -1,0 +1,1 @@
+I encountered an error when trying to retrieve social media and news sentiment for SPY using the available tool. It seems there's a file not found error, which I am unable to resolve with my current capabilities. I will need assistance from another agent with access to the correct files or data to proceed with the analysis.
