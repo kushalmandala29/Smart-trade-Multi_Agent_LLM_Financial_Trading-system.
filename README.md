@@ -30,12 +30,9 @@ Environment variables
 ---------------------
 Set what you need before running. Common examples:
 ```powershell
-$env:OPENAI_API_KEY="..."
-$env:ANTHROPIC_API_KEY="..."
+
 $env:GOOGLE_API_KEY="..."
 $env:FINNHUB_API_KEY="..."
-$env:TUSHARE_TOKEN="..."
-$env:REDIS_URL="redis://localhost:6379"  # if using Redis
 ```
 
 Quick start (CLI)
