@@ -1,75 +1,71 @@
-Smart-trade Multi-Agent LLM Financial Trading System
-===================================================
+# Smart-trade Multi-Agent LLM Financial Trading System
 
-A multi-agent, LLM-driven research and trading framework that coordinates analyst, research, trading, risk, and portfolio teams to generate market analysis, trade plans, and final portfolio decisions. The CLI provides an interactive, Rich-powered terminal experience to monitor agent progress and view generated reports.
+Smart-trade is a Python CLI application that provides a multi-agent research and trading platform. Specialized agents (market, sentiment, news, and fundamentals analysts) ingest and summarize data; researcher agents (bull/bear) synthesize viewpoints; trader agents propose trade plans; risk agents debate position sizing and limits; and a portfolio manager consolidates decisions into final trades and structured reports. The system is designed for researchers, algorithmic traders, and hackathon teams who want to experiment with LLM-driven workflows and rapid iteration.
 
-Features
---------
-- Multi-agent pipeline: market, sentiment, news, and fundamentals analysts feed bull/bear researchers, trader, risk debators, and portfolio manager.
-- Rich CLI dashboard: live progress, agent statuses, messages, and rendered report sections.
-- Data integrations: yfinance, Finnhub, Akshare/Tushare, Reddit (praw), feedparser/news, stockstats, backtrader scaffolding.
-- LLM tooling: LangChain (OpenAI, Anthropic, Google GenAI), LangGraph orchestration, Chroma vector storage.
-- Caching and storage: Redis support for persistence, local data cache under `tradingagents/dataflows/data_cache`.
+Key strengths
+- Multi-agent orchestration: clearly separated responsibilities for data ingestion, analysis, research, trading, risk, and portfolio management. The trading graph routes signals and outputs between components so each agent can focus on a small set of tasks.
+- Local-first LLM usage and GPU optimizations: supports running smaller or quantized models locally, mixed precision (FP16), model offloading, and batch/streaming modes to maximize GPU utilization and reduce latency and cost when compared to repeated remote API calls.
+- Performance and cost controls: prompt/result caching, vector storage (Chroma) for retrieval-augmented generation, asynchronous agent execution, staged processing to limit in-memory data, and optional Redis caching for persistence.
+- Extensible dataflows: built-in integrations for yfinance, Finnhub, Tushare/Akshare, Reddit (praw), feedparser/news, and stockstats. Backtrader scaffolding is included for strategy testing.
 
-Requirements
-------------
-- Python 3.10+
-- Recommended: virtual environment
-- Optional services: Redis (if you enable caching), API keys for OpenAI/Anthropic/Google GenAI/Finnhub/Tushare/Akshare as needed
-
-Setup
------
-```powershell
-# from repo root
+Quick start
+```bash
 python -m venv venv
+# macOS / Linux
+source venv/bin/activate
+# Windows (PowerShell)
 ./venv/Scripts/Activate.ps1
+
 pip install -r requirements.txt
 ```
 
-Environment variables
----------------------
-Set what you need before running. Common examples:
-```powershell
-
-$env:GOOGLE_API_KEY="..."
-$env:FINNHUB_API_KEY="..."
-```
-
-Quick start (CLI)
------------------
-```powershell
+Run the CLI
+```bash
 cd cli
-python main.py
+python main.py          # launches Typer + Rich CLI dashboard
+python main.py --help   # see available commands and flags
 ```
 
-Command-line options
---------------------
-The Typer app is defined in `cli/main.py`. Run `python main.py --help` for available commands/flags (shell completion is enabled by Typer).
+Environment variables
+Set keys and services you plan to use before running. Examples:
+```bash
+export GOOGLE_API_KEY="..."
+export FINNHUB_API_KEY="..."
+export OPENAI_API_KEY="..."     # if using OpenAI
+export ANTHROPIC_API_KEY="..."  # if using Anthropic
+# optional Redis
+export REDIS_URL="redis://localhost:6379"
+```
 
-Project layout
---------------
-- `cli/` – Rich/typer CLI, models, helpers, welcome banner
-- `tradingagents/graph/` – agent graph orchestration and signal processing
-- `tradingagents/agents/` – analysts, researchers, trader, risk debators, managers
-- `tradingagents/dataflows/` – data ingestion (yfinance, Finnhub, news/reddit, stock stats), config, cache
-- `results/` – generated reports and logs grouped by symbol/date
-- `assets/` – diagrams and CLI screenshots
+Project layout (top-level)
+```
+cli/                    Typer + Rich CLI and helpers
+tradingagents/          core agent framework: graph, agents, dataflows
+results/                generated reports and logs (results/<symbol>/<date>/reports)
+assets/                 diagrams and CLI screenshots
+README.md               quick start and overview
+IMPLEMENTATION.md       (new) architecture and implementation details
+```
+
+How it runs (runtime shape)
+- The CLI (cli/main.py) constructs and starts a trading graph defined in tradingagents/graph/trading_graph.py.
+- Dataflows in tradingagents/dataflows/* fetch and pre-process market, news, and social data. Analysts consume this data and produce concise messages or signals.
+- Signals are vectorized and cached (Chroma) and then routed across researchers, trader, and risk agents for deliberation. The portfolio manager consolidates final decisions and writes reports under results/.
+
+Performance recommendations for local/GPU usage
+- Prefer local or quantized models when doing many iterative runs to reduce API costs and latency.
+- Use mixed precision (FP16) where supported and enable model offloading to move parts of the model between GPU and CPU to avoid GPU memory exhaustion.
+- Batch or stream requests to the LLM where possible to increase throughput and reduce per-call overhead.
+- Cache prompt results and reuse vector retrieval (Chroma) rather than reconstructing full contexts for repeated queries.
+- Run agents asynchronously to overlap I/O and computation and use staged processing so only necessary datasets are loaded in memory.
+- Add profiling hooks (see tradingagents/default_config.py and graph/setup.py) to measure GPU/CPU usage and tune model size, batch size, and offload configuration.
 
 Outputs
--------
-- Reports and logs are written under `results/<symbol>/<date>/reports/` (market, sentiment, news, fundamentals, plans, final decisions).
+- Reports and logs are written under `results/<symbol>/<date>/reports/` (market, sentiment, news, fundamentals, plans, and final decisions). Use these outputs for audit and post-analysis.
 
-Architecture (high level)
---------------------------
-![Architecture diagram](assets/WhatsApp%20Image%202025-11-26%20at%2012.23.54.jpeg)
-
-The diagram shows the CLI (Typer + Rich) driving the TradingAgents graph, which orchestrates analyst teams (market/sentiment/news/fundamentals), bull/bear researchers, trader, risk debators, and portfolio manager, all fed by external data sources (yfinance, Finnhub, Akshare/Tushare, Reddit/news/feeds, stock stats). Outputs flow into reports and final portfolio decisions.
-
-Development
------------
-- Lint/format: not configured; you can add Ruff/Black/Flake8 if desired.
-- Tests: none committed; recommended to add unit tests for dataflows and agent logic.
+Development notes
+- Python 3.10+ is required. The project is ready for local experimentation but does not include unit tests; adding tests for dataflows and agent logic is recommended.
+- The CLI app is implemented with Typer and Rich for interactive dashboards. Agent orchestration uses a custom trading graph and leverages LangChain / LangGraph for LLM orchestration.
 
 License
--------
 See `LICENSE` for details.
